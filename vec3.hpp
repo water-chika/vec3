@@ -3,6 +3,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <tuple>
 
 namespace water {
 	class vec3 {
@@ -14,6 +15,10 @@ namespace water {
 		}
 		double& operator[](int i) {
 			return m_e[i];
+		}
+		template<std::size_t I>
+		double& get() {
+			return m_e[I];
 		}
 		vec3& operator+=(const vec3& v) {
 			m_e[0] += v.m_e[0];
@@ -79,4 +84,24 @@ namespace water {
 		out << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
 		return out;
 	}
+
+}
+namespace std {
+	template<>
+	class tuple_size<water::vec3> {
+	public:
+		static constexpr int value = 3;
+	};
+	template<>
+	class tuple_element<0, water::vec3> {
+		using type = double;
+	};
+	template<>
+	class tuple_element<1, water::vec3> {
+		using type = double;
+	};
+	template<>
+	class tuple_element<2, water::vec3> {
+		using type = double;
+	};
 }
