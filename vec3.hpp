@@ -58,6 +58,9 @@ namespace water {
 	inline vec3 operator+(const vec3& u, const vec3& v) {
 		return vec3{ u[0] + v[0], u[1] + v[1], u[2] + v[2] };
 	}
+	inline vec3 operator-(const vec3& u) {
+		return vec3{ -u[0], -u[1], -u[2] };
+	}
 	inline vec3 operator-(const vec3& u, const vec3& v) {
 		return vec3{ u[0] - v[0], u[1] - v[1], u[2] - v[2] };
 	}
