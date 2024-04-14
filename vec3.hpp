@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <tuple>
+#include <random>
 
 namespace water {
 	class vec3 {
@@ -87,7 +88,83 @@ namespace water {
 		out << "(" << v[0] << ", " << v[1] << ", " << v[2] << ")";
 		return out;
 	}
-
+	// This would distribute random vec3 on [a, b).
+	class uniform_vec3_distribution {
+	public:
+		uniform_vec3_distribution() : uniform_vec3_distribution{ vec3{} } {}
+		uniform_vec3_distribution(const vec3& a, const vec3& b = vec3{ 1,1,1 })
+			:
+			m_a{ a },
+			m_b{ b },
+			m_real_distribution{ 0, 1 }
+		{}
+		void reset() {
+			m_real_distribution.reset();
+		}
+		vec3 operator()(auto& generator) {
+			return m_a + (m_b - m_a) * m_real_distribution(generator);
+		}
+		vec3 a() const {
+			return m_a;
+		}
+		vec3 b() const {
+			return m_b;
+		}
+	private:
+		vec3 m_a;
+		vec3 m_b;
+		std::uniform_real_distribution<double> m_real_distribution;
+	};
+	class uniform_sphere_distribution {
+	public:
+		uniform_sphere_distribution(double m_radius) : m_real_distribution{ -m_radius, +m_radius } {}
+		void reset() {
+			m_real_distribution.reset();
+		}
+		vec3 operator()(auto& generator) {
+			while (true) {
+				vec3 p{ m_real_distribution(generator), m_real_distribution(generator), m_real_distribution(generator) };
+				if (p.length_squared() < 1) {
+					return p;
+				}
+			}
+		}
+	private:
+		std::uniform_real_distribution<double> m_real_distribution;
+	};
+	class uniform_unit_vec3_distribution {
+	public:
+		uniform_unit_vec3_distribution() : m_sphere_distribution{ 1.0 } {}
+		void reset() {
+			m_sphere_distribution.reset();
+		}
+		vec3 operator()(auto& generator) {
+			return m_sphere_distribution(generator).unit();
+		}
+	private:
+		uniform_sphere_distribution m_sphere_distribution;
+	};
+	template<bool On = true>
+	class uniform_hemisphere_distribution {
+		static_assert(On == true);
+	public:
+		uniform_hemisphere_distribution(const vec3& normal) : m_normal{ normal } {}
+		void reset() {
+			m_unit_distribution.reset();
+		}
+		vec3 operator()(auto& generator) {
+			vec3 v = m_unit_distribution(generator);
+			if (dot(v, m_normal) > 0.0) {
+				return v;
+			}
+			else {
+				return -v;
+			}
+		}
+	private:
+		vec3 m_normal;
+		uniform_unit_vec3_distribution m_unit_distribution;
+	};
 }
 namespace std {
 	template<>
